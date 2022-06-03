@@ -1,0 +1,29 @@
+project_name: pages
+
+snapshot:
+  name_template: "{{ .ShortCommit }}"
+
+builds:
+  - id: pages
+    main: ./cmd/pages/main.go
+    binary: pages
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    goamd64: []
+
+archives:
+  - id: pages
+    name_template: "pages_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: 'pages_checksums.txt'
+
+release:
+  header: ""
+  footer: ""

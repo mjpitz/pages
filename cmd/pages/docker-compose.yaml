@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  pages:
+    container_name: pages
+    image: ${SKAFFOLD_DEFAULT_REPO:-img.pitz.tech/mya}/pages
+    restart: always
+    ports:
+      - "8080:8080" # public
+      - "8081:8081" # private
+    environment:
+      PAGES_LOG_LEVEL: info
+      PAGES_LOG_FORMAT: json
+      # PAGES_GIT_URL: https://github.com/mjpitz/mjpitz.git
+      # PAGES_GIT_BRANCH: gh-pages
