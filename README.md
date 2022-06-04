@@ -44,8 +44,22 @@ system.
 
 ### pages_page_view_count
 
+The number of page views for a given path and their associated referrer.
+
 ```text
 # HELP pages_page_view_count page views
 # TYPE pages_page_view_count counter
 pages_page_view_count{country="",path="/charts/",referrer="http://localhost:8080/blog/"} 1
+```
+
+### pages_page_session_duration
+
+How long a user is actively engaged with the page.
+
+https://github.com/mjpitz/pages/issues/2
+
+```text
+# HELP pages_page_session_duration time spent on a given page in seconds
+# TYPE pages_page_session_duration histogram
+pages_page_session_duration{country="",path="/charts/"}
 ```
