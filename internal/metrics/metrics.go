@@ -45,4 +45,14 @@ var (
 		},
 		[]string{"path", "country"},
 	)
+
+	PageSessionsActive = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Subsystem: page,
+			Name:      "sessions_active",
+			Help:      "the number of current sessions for a given page",
+		},
+		[]string{"path", "country"},
+	)
 )

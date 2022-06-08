@@ -46,15 +46,19 @@ type Handle struct {
 
 func (h *Handle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.upgrader.Upgrade(w, r, nil)
-	defer func() { _ = conn.Close() }()
-
 	if err != nil {
 		// log
 		return
 	}
 
+	defer func() { _ = conn.Close() }()
+
 	path := r.URL.Path
 	geoInfo := geoip.Extract(r.Context())
+
+	active := metrics.PageSessionsActive.WithLabelValues(path, geoInfo.CountryCode)
+	active.Inc()
+	defer func() { active.Dec() }()
 
 	start := time.Now()
 	defer func() {

@@ -74,3 +74,13 @@ pages_page_session_seconds_bucket{country="",path="/",le="+Inf"} 1
 pages_page_session_seconds_sum{country="",path="/"} 1.855976549
 pages_page_session_seconds_count{country="",path="/"} 1
 ```
+
+### pages_page_sessions_active
+
+A gauge that approximates the current number of sessions per page.
+
+```text
+# HELP pages_page_sessions_active the number of current sessions for a given page
+# TYPE pages_page_sessions_active gauge
+pages_page_sessions_active{country="",path="/"} 1
+```
