@@ -47,19 +47,30 @@ system.
 The number of page views for a given path and their associated referrer.
 
 ```text
-# HELP pages_page_view_count page views
+# HELP pages_page_view_count the number of times a given page has been viewed and by what referrer
 # TYPE pages_page_view_count counter
 pages_page_view_count{country="",path="/charts/",referrer="http://localhost:8080/blog/"} 1
 ```
 
-### pages_page_session_duration
+### pages_page_session_seconds
 
-How long a user is actively engaged with the page.
-
-https://github.com/mjpitz/pages/issues/2
+Histogram of how long users spend on a page.
 
 ```text
-# HELP pages_page_session_duration time spent on a given page in seconds
-# TYPE pages_page_session_duration histogram
-pages_page_session_duration{country="",path="/charts/"}
+# HELP pages_page_session_seconds how long someone spent on a given page
+# TYPE pages_page_session_seconds histogram
+pages_page_session_seconds_bucket{country="",path="/",le="0.005"} 0
+pages_page_session_seconds_bucket{country="",path="/",le="0.01"} 0
+pages_page_session_seconds_bucket{country="",path="/",le="0.025"} 0
+pages_page_session_seconds_bucket{country="",path="/",le="0.05"} 0
+pages_page_session_seconds_bucket{country="",path="/",le="0.1"} 0
+pages_page_session_seconds_bucket{country="",path="/",le="0.25"} 0
+pages_page_session_seconds_bucket{country="",path="/",le="0.5"} 0
+pages_page_session_seconds_bucket{country="",path="/",le="1"} 0
+pages_page_session_seconds_bucket{country="",path="/",le="2.5"} 1
+pages_page_session_seconds_bucket{country="",path="/",le="5"} 1
+pages_page_session_seconds_bucket{country="",path="/",le="10"} 1
+pages_page_session_seconds_bucket{country="",path="/",le="+Inf"} 1
+pages_page_session_seconds_sum{country="",path="/"} 1.855976549
+pages_page_session_seconds_count{country="",path="/"} 1
 ```

@@ -20,6 +20,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"path"
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
@@ -31,11 +32,16 @@ import (
 	httpauth "github.com/mjpitz/myago/auth/http"
 	"github.com/mjpitz/myago/headers"
 	"github.com/mjpitz/myago/livetls"
+	"github.com/mjpitz/pages/internal/excludes"
+	"github.com/mjpitz/pages/internal/geoip"
+	"github.com/mjpitz/pages/internal/pageviews"
+	"github.com/mjpitz/pages/internal/session"
+	"github.com/mjpitz/pages/internal/web"
 )
 
-// AdminConfig encapsulates configuration for the administrative process.
+// AdminConfig encapsulates configuration for the administrative endpoints.
 type AdminConfig struct {
-	Prefix   string `json:"prefix" usage:"configure the prefix to use for admin endpoints" default:"/_admin"`
+	Prefix   string `json:"prefix" usage:"configure the prefix to use for admin endpoints" default:"/_admin" hidden:"true"`
 	Username string `json:"username" usage:"specify the username used to authenticate requests with the admin endpoints" default:"admin"`
 	Password string `json:"password" usage:"specify the password used to authenticate requests with the admin endpoints"`
 }
@@ -48,6 +54,7 @@ type BindConfig struct {
 // ServerConfig defines configuration for a public and private interface.
 type ServerConfig struct {
 	Admin   AdminConfig    `json:"admin"`
+	Session session.Config `json:"session"`
 	TLS     livetls.Config `json:"tls"`
 	Public  BindConfig     `json:"public"`
 	Private BindConfig     `json:"private"`
@@ -63,17 +70,26 @@ func NewServer(ctx context.Context, config ServerConfig) (*Server, error) {
 	private := mux.NewRouter()
 	private.Handle("/metrics", promhttp.Handler())
 
+	exclusions := []excludes.Exclusion{
+		excludes.AssetExclusion(),
+		excludes.PrefixExclusion(config.Admin.Prefix),
+		excludes.PrefixExclusion(config.Session.Prefix),
+	}
+
 	public := mux.NewRouter()
 	public.Use(
 		func(next http.Handler) http.Handler { return headers.HTTP(next) },
-		Middleware(
-			emptyGeoIP{},
-			AssetMatcher(),
-			PrefixMatcher(config.Admin.Prefix),
+		geoip.Middleware(geoip.Empty{}),
+		pageviews.Middleware(
+			pageviews.Exclusions(exclusions...),
+		),
+		session.Middleware(
+			session.Exclusions(exclusions...),
+			session.JavaScriptPath(path.Join(config.Session.Prefix, "pages.js")),
 		),
 	)
 
-	admin := public.Path(config.Admin.Prefix).Subrouter()
+	admin := public.PathPrefix(config.Admin.Prefix).Subrouter()
 
 	if config.Admin.Password != "" {
 		authenticate := basicauth.Static(config.Admin.Username, config.Admin.Password)
@@ -82,6 +98,15 @@ func NewServer(ctx context.Context, config ServerConfig) (*Server, error) {
 		admin.Use(func(next http.Handler) http.Handler {
 			return httpauth.Handler(next, authenticate, required)
 		})
+	}
+
+	{
+		var handler http.Handler = session.Handler()
+		handler = http.StripPrefix(config.Session.Prefix, handler)
+
+		session := public.PathPrefix(config.Session.Prefix).Subrouter()
+		session.HandleFunc("/pages.js", web.Handler()).Methods(http.MethodGet)
+		session.Handle("/", handler)
 	}
 
 	return &Server{

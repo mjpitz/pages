@@ -1,0 +1,15 @@
+{
+  "name": "@mjpitz/pages-web",
+  "version": "0.0.0",
+  "private": "true",
+  "scripts": {
+    "build": "webpack build"
+  },
+  "devDependencies": {
+    "webpack": "^5.73.0",
+    "webpack-cli": "^4.9.2"
+  },
+  "dependencies": {
+    "ulid": "^2.3.0"
+  }
+}

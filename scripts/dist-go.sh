@@ -20,6 +20,8 @@ set -e -o pipefail
 go mod download
 go mod verify
 
+go generate ./...
+
 if [[ -z "${VERSION}" ]]; then
 	goreleaser --snapshot --skip-publish --rm-dist
 else

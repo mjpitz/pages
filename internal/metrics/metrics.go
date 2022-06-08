@@ -31,8 +31,18 @@ var (
 			Namespace: namespace,
 			Subsystem: page,
 			Name:      "view_count",
-			Help:      "page views",
+			Help:      "the number of times a given page has been viewed and by what referrer",
 		},
 		[]string{"path", "referrer", "country"},
+	)
+
+	PageSessionDuration = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: namespace,
+			Subsystem: page,
+			Name:      "session_seconds",
+			Help:      "how long someone spent on a given page",
+		},
+		[]string{"path", "country"},
 	)
 )
