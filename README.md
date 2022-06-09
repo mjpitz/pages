@@ -1,4 +1,4 @@
-# pages
+# 📜 pages
 
 `pages` provides web application / static site hosting with built-in support for simple analytics via [Prometheus][] and
 [Grafana][].
