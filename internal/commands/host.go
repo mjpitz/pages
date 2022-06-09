@@ -18,6 +18,7 @@ package commands
 
 import (
 	"context"
+	"mime"
 	"net/http"
 
 	"github.com/urfave/cli/v2"
@@ -50,6 +51,10 @@ var (
 		Flags:     flagset.ExtractPrefix("pages", hostConfig),
 		Action: func(ctx *cli.Context) error {
 			log := zaputil.Extract(ctx.Context)
+
+			_ = mime.AddExtensionType(".woff2", "application/font-woff2")
+			_ = mime.AddExtensionType(".woff", "application/font-woff")
+			_ = mime.AddExtensionType(".ttf", "font/ttf")
 
 			gitService := git.NewService(hostConfig.Git)
 			err := gitService.Load(ctx.Context)
