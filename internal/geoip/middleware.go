@@ -28,10 +28,6 @@ import (
 
 var key = myago.ContextKey("geoip.info")
 
-type Info struct {
-	CountryCode string
-}
-
 func Extract(ctx context.Context) Info {
 	val := ctx.Value(key)
 	v, ok := val.(Info)
@@ -41,16 +37,6 @@ func Extract(ctx context.Context) Info {
 	}
 
 	return v
-}
-
-type Interface interface {
-	Lookup(ip string) Info
-}
-
-type Empty struct{}
-
-func (e Empty) Lookup(ip string) Info {
-	return Info{}
 }
 
 func Middleware(geoip Interface) mux.MiddlewareFunc {

@@ -18,5 +18,6 @@ package session
 
 // Config encapsulates configuration for the session endpoints.
 type Config struct {
+	Enable bool   `json:"enable" usage:"enables session tracking and script injection" default:"true"`
 	Prefix string `json:"prefix" usage:"configure the prefix to use for recording sessions" default:"/_session" hidden:"true"`
 }

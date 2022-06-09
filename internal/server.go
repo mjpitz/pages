@@ -54,6 +54,7 @@ type BindConfig struct {
 // ServerConfig defines configuration for a public and private interface.
 type ServerConfig struct {
 	Admin   AdminConfig    `json:"admin"`
+	GeoIP   geoip.Config   `json:"geoip"`
 	Session session.Config `json:"session"`
 	TLS     livetls.Config `json:"tls"`
 	Public  BindConfig     `json:"public"`
@@ -63,6 +64,11 @@ type ServerConfig struct {
 // NewServer constructs a Server from it's associated configuration.
 func NewServer(ctx context.Context, config ServerConfig) (*Server, error) {
 	tls, err := livetls.New(ctx, config.TLS)
+	if err != nil {
+		return nil, err
+	}
+
+	ipdb, err := config.GeoIP.Open()
 	if err != nil {
 		return nil, err
 	}
@@ -79,15 +85,20 @@ func NewServer(ctx context.Context, config ServerConfig) (*Server, error) {
 	public := mux.NewRouter()
 	public.Use(
 		func(next http.Handler) http.Handler { return headers.HTTP(next) },
-		geoip.Middleware(geoip.Empty{}),
+		geoip.Middleware(ipdb),
 		pageviews.Middleware(
 			pageviews.Exclusions(exclusions...),
 		),
-		session.Middleware(
-			session.Exclusions(exclusions...),
-			session.JavaScriptPath(path.Join(config.Session.Prefix, "pages.js")),
-		),
 	)
+
+	if config.Session.Enable {
+		public.Use(
+			session.Middleware(
+				session.Exclusions(exclusions...),
+				session.JavaScriptPath(path.Join(config.Session.Prefix, "pages.js")),
+			),
+		)
+	}
 
 	admin := public.PathPrefix(config.Admin.Prefix).Subrouter()
 

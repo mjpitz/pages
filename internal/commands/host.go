@@ -31,13 +31,13 @@ import (
 )
 
 type HostConfig struct {
-	Server internal.ServerConfig `json:"server"`
-	Git    git.Config            `json:"git"`
+	internal.ServerConfig
+	Git git.Config `json:"git"`
 }
 
 var (
 	hostConfig = &HostConfig{
-		Server: internal.ServerConfig{
+		ServerConfig: internal.ServerConfig{
 			Public:  internal.BindConfig{Address: "0.0.0.0:8080"},
 			Private: internal.BindConfig{Address: "0.0.0.0:8081"},
 		},
@@ -57,7 +57,7 @@ var (
 				return err
 			}
 
-			server, err := internal.NewServer(ctx.Context, hostConfig.Server)
+			server, err := internal.NewServer(ctx.Context, hostConfig.ServerConfig)
 			if err != nil {
 				return err
 			}
@@ -78,8 +78,8 @@ var (
 			server.PublicMux.PathPrefix("/").Handler(http.FileServer(git.HTTP(gitService.FS))).Methods(http.MethodGet)
 
 			log.Info("serving",
-				zap.String("public", hostConfig.Server.Public.Address),
-				zap.String("private", hostConfig.Server.Private.Address))
+				zap.String("public", hostConfig.Public.Address),
+				zap.String("private", hostConfig.Private.Address))
 
 			group, c := errgroup.WithContext(ctx.Context)
 			group.Go(server.ListenAndServe)

@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/IncSW/geoip2 v0.1.2
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/gorilla/mux v1.8.0
