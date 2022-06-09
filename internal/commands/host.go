@@ -52,9 +52,13 @@ var (
 		Action: func(ctx *cli.Context) error {
 			log := zaputil.Extract(ctx.Context)
 
+			// additional mime-types that need to be explicitly registered
 			_ = mime.AddExtensionType(".woff2", "application/font-woff2")
 			_ = mime.AddExtensionType(".woff", "application/font-woff")
 			_ = mime.AddExtensionType(".ttf", "font/ttf")
+			_ = mime.AddExtensionType(".yaml", "application/yaml")
+			_ = mime.AddExtensionType(".yml", "application/yaml")
+			_ = mime.AddExtensionType(".json", "application/json")
 
 			gitService := git.NewService(hostConfig.Git)
 			err := gitService.Load(ctx.Context)

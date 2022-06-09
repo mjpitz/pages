@@ -18,11 +18,13 @@
 
 import {ulid} from 'ulid';
 
+const secure = window.location.protocol === "https:";
+const protocol = secure ? "wss:" : "ws:";
 const sessionPrefix = "/_session";
-const domain = window.location.host;
+const domain = window.location.host + (secure ? ":443" : "");
 
 async function main() {
-    const ws = new WebSocket(`ws://${domain}${sessionPrefix}${window.location.pathname}`);
+    const ws = new WebSocket(`${protocol}//${domain}${sessionPrefix}${window.location.pathname}`);
     const message = `{"ID":"${ulid()}","FullName":"ping"}`
 
     let id = null;
