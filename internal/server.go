@@ -20,7 +20,6 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"path"
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
@@ -95,9 +94,15 @@ func NewServer(ctx context.Context, config ServerConfig) (*Server, error) {
 		public.Use(
 			session.Middleware(
 				session.Exclusions(exclusions...),
-				session.JavaScriptPath(path.Join(config.Session.Prefix, "pages.js")),
+				session.JavaScriptPath("/pages.js"),
 			),
 		)
+
+		var handler http.Handler = session.Handler()
+		handler = http.StripPrefix(config.Session.Prefix, handler)
+
+		public.Handle("/pages.js", web.Handler()).Methods(http.MethodGet)
+		public.PathPrefix(config.Session.Prefix).Handler(handler)
 	}
 
 	admin := public.PathPrefix(config.Admin.Prefix).Subrouter()
@@ -109,15 +114,6 @@ func NewServer(ctx context.Context, config ServerConfig) (*Server, error) {
 		admin.Use(func(next http.Handler) http.Handler {
 			return httpauth.Handler(next, authenticate, required)
 		})
-	}
-
-	{
-		var handler http.Handler = session.Handler()
-		handler = http.StripPrefix(config.Session.Prefix, handler)
-
-		session := public.PathPrefix(config.Session.Prefix).Subrouter()
-		session.HandleFunc("/pages.js", web.Handler()).Methods(http.MethodGet)
-		session.Handle("/", handler)
 	}
 
 	return &Server{

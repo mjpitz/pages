@@ -21,7 +21,9 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 
+	"github.com/mjpitz/myago/zaputil"
 	"github.com/mjpitz/pages/internal/geoip"
 	"github.com/mjpitz/pages/internal/metrics"
 )
@@ -45,9 +47,11 @@ type Handle struct {
 }
 
 func (h *Handle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log := zaputil.Extract(r.Context())
+
 	conn, err := h.upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		// log
+		log.Error("failed to upgrade connection", zap.Error(err))
 		return
 	}
 
@@ -70,7 +74,6 @@ func (h *Handle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		err = conn.ReadJSON(&req)
 		if err != nil {
-			// log
 			return
 		}
 	}
