@@ -60,8 +60,12 @@ var (
 			_ = mime.AddExtensionType(".yml", "application/yaml")
 			_ = mime.AddExtensionType(".json", "application/json")
 
-			gitService := git.NewService(hostConfig.Git)
-			err := gitService.Load(ctx.Context)
+			gitService, err := git.NewService(hostConfig.Git)
+			if err != nil {
+				return err
+			}
+
+			err = gitService.Load(ctx.Context)
 			if err != nil {
 				return err
 			}

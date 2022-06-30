@@ -58,6 +58,10 @@ type httpFile struct {
 	file     billy.File
 }
 
+func (f *httpFile) Seek(offset int64, whence int) (int64, error) {
+	return f.file.Seek(offset, whence)
+}
+
 func (f *httpFile) Stat() (fs.FileInfo, error) {
 	return f.fileInfo, nil
 }

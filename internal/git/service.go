@@ -18,9 +18,10 @@ package git
 
 import (
 	"context"
+	"os"
 
 	"github.com/go-git/go-billy/v5"
-	"github.com/go-git/go-billy/v5/memfs"
+	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
@@ -41,11 +42,14 @@ type Config struct {
 }
 
 // NewService constructs a Service that manages the underlying git repository.
-func NewService(config Config) *Service {
+func NewService(config Config) (*Service, error) {
+	temp, err := os.MkdirTemp(os.TempDir(), "pages-*")
+	if err != nil {
+		return nil, err
+	}
+
 	options := &git.CloneOptions{
-		URL:          config.URL,
-		Depth:        1,
-		SingleBranch: true,
+		URL: config.URL,
 	}
 
 	if config.Username != "" && config.Password != "" {
@@ -65,8 +69,8 @@ func NewService(config Config) *Service {
 	return &Service{
 		options: options,
 		Store:   memory.NewStorage(),
-		FS:      memfs.New(),
-	}
+		FS:      osfs.New(temp),
+	}, nil
 }
 
 // Service encapsulates operations that can be performed against the target git repository.
@@ -98,13 +102,19 @@ func (s *Service) Sync(ctx context.Context) error {
 		return errors.Wrap(err, "failed to obtain worktree")
 	}
 
-	_ = wt.PullContext(ctx, &git.PullOptions{
+	err = wt.PullContext(ctx, &git.PullOptions{
 		ReferenceName: s.options.ReferenceName,
 		SingleBranch:  s.options.SingleBranch,
 		Depth:         s.options.Depth,
 		Auth:          s.options.Auth,
 		Force:         true,
 	})
+
+	switch {
+	case errors.Is(err, git.NoErrAlreadyUpToDate):
+	case err != nil:
+		zaputil.Extract(ctx).Error("failed to pull", zap.Error(err))
+	}
 
 	return nil
 }
