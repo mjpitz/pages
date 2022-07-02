@@ -37,20 +37,24 @@ func (c Config) Open() (Interface, error) {
 	return Empty{}, nil
 }
 
+// Info describes the various pieces of information that can be returned from a lookup.
 type Info struct {
 	CountryCode string
 }
 
+// Interface defines how to resolve an IP to it's associated information.
 type Interface interface {
 	Lookup(ip string) Info
 }
 
+// Empty provides an implementation that always returns empty information, regardless of ip.
 type Empty struct{}
 
 func (e Empty) Lookup(ip string) Info {
 	return Info{}
 }
 
+// CountryLite uses the Maxmind GeoIP Country Lite database to resolve IP addresses to their associated country info.
 func CountryLite(file string) (*Maxmind, error) {
 	reader, err := geoip2.NewCountryReaderFromFile(file)
 	if err != nil {
@@ -60,6 +64,7 @@ func CountryLite(file string) (*Maxmind, error) {
 	return &Maxmind{reader}, nil
 }
 
+// Maxmind provides logic for using Maxmind to resolve country information.
 type Maxmind struct {
 	reader *geoip2.CountryReader
 }

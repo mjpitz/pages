@@ -1,6 +1,6 @@
 module github.com/mjpitz/pages
 
-go 1.17
+go 1.18
 
 require (
 	github.com/mjpitz/myago v0.0.0-20220328020418-e35ac8e87490

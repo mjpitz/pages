@@ -33,9 +33,10 @@ var (
 			Name:      "view_count",
 			Help:      "the number of times a given page has been viewed and by what referrer",
 		},
-		[]string{"path", "referrer", "country"},
+		[]string{"domain", "path", "referrer", "country"},
 	)
 
+	// PageSessionDuration tracks how long someone spends on an individual page.
 	PageSessionDuration = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: namespace,
@@ -43,9 +44,10 @@ var (
 			Name:      "session_seconds",
 			Help:      "how long someone spent on a given page",
 		},
-		[]string{"path", "country"},
+		[]string{"domain", "path", "country"},
 	)
 
+	// PageSessionsActive provides an approximation of the number of sessions that are currently observing the page.
 	PageSessionsActive = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: namespace,
@@ -53,6 +55,6 @@ var (
 			Name:      "sessions_active",
 			Help:      "the number of current sessions for a given page",
 		},
-		[]string{"path", "country"},
+		[]string{"domain", "path", "country"},
 	)
 )

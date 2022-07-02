@@ -18,6 +18,7 @@ package session
 
 import (
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -28,9 +29,20 @@ import (
 	"github.com/mjpitz/pages/internal/metrics"
 )
 
+type Metric struct {
+	Key   string
+	Value any // float, bool, int, ...
+}
+
+type Measurements struct {
+	Timestamp uint64 // seconds
+	Metrics   []Metric
+}
+
 type Request struct {
 	ID       string
 	FullName string
+	Data     []Measurements
 }
 
 func Handler() *Handle {
@@ -47,7 +59,8 @@ type Handle struct {
 }
 
 func (h *Handle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log := zaputil.Extract(r.Context())
+	ctx := r.Context()
+	log := zaputil.Extract(ctx)
 
 	conn, err := h.upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -57,16 +70,29 @@ func (h *Handle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	defer func() { _ = conn.Close() }()
 
-	path := r.URL.Path
-	geoInfo := geoip.Extract(r.Context())
+	u, err := url.Parse(r.RequestURI)
+	if err != nil {
+		return
+	}
 
-	active := metrics.PageSessionsActive.WithLabelValues(path, geoInfo.CountryCode)
+	domain := u.Hostname()
+	switch {
+	case r.Header.Get("Host") != "":
+		domain = r.Header.Get("Host")
+	case r.Header.Get("X-Forwarded-Host") != "":
+		domain = r.Header.Get("X-Forwarded-Host")
+	}
+
+	path := u.Path
+	geoInfo := geoip.Extract(ctx)
+
+	active := metrics.PageSessionsActive.WithLabelValues(domain, path, geoInfo.CountryCode)
 	active.Inc()
 	defer func() { active.Dec() }()
 
 	start := time.Now()
 	defer func() {
-		metrics.PageSessionDuration.WithLabelValues(path, geoInfo.CountryCode).Observe(time.Since(start).Seconds())
+		metrics.PageSessionDuration.WithLabelValues(domain, path, geoInfo.CountryCode).Observe(time.Since(start).Seconds())
 	}()
 
 	for {

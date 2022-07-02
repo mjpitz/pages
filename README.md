@@ -15,6 +15,6 @@ simpler solution that doesn't require cookie disclosures.
 
 ## Resources
 
-- [Quickstart](https://github.com/mjpitz/pages/wiki#quickstart-with-docker)
-- [Metrics](https://github.com/mjpitz/pages/wiki/Metrics)
-- [Deployment](https://github.com/mjpitz/pages/wiki/Deployment)
+- [Quickstart](https://code.pitz.tech/mya/pages/wiki#quickstart-with-docker)
+- [Metrics](https://code.pitz.tech/mya/pages/wiki/Metrics)
+- [Deployment](https://code.pitz.tech/mya/pages/wiki/Deployment)

@@ -18,6 +18,7 @@ package pageviews
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/gorilla/mux"
 
@@ -56,12 +57,28 @@ func Middleware(opts ...Option) mux.MiddlewareFunc {
 				return
 			}
 
+			url, err := url.Parse(r.RequestURI)
+			if err != nil {
+				http.Error(w, "", http.StatusBadRequest)
+				return
+			}
+
+			domain := url.Hostname()
+			switch {
+			case r.Header.Get("Host") != "":
+				domain = r.Header.Get("Host")
+			case r.Header.Get("X-Forwarded-Host") != "":
+				domain = r.Header.Get("X-Forwarded-Host")
+			}
+
+			path := url.Path
+			referrer := r.Referer()
 			info := geoip.Extract(r.Context())
 
 			d := &writer{w, http.StatusOK}
 			defer func() {
 				if d.statusCode != http.StatusNotFound {
-					metrics.PageViewCount.WithLabelValues(r.URL.Path, r.Referer(), info.CountryCode).Inc()
+					metrics.PageViewCount.WithLabelValues(domain, path, referrer, info.CountryCode).Inc()
 				}
 			}()
 
