@@ -25,10 +25,11 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	"code.pitz.tech/mya/pages/internal/commands"
+
 	"github.com/mjpitz/myago/flagset"
 	"github.com/mjpitz/myago/lifecycle"
 	"github.com/mjpitz/myago/zaputil"
-	"github.com/mjpitz/pages/internal/commands"
 )
 
 var version = ""

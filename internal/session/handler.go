@@ -24,9 +24,10 @@ import (
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 
+	"code.pitz.tech/mya/pages/internal/geoip"
+	"code.pitz.tech/mya/pages/internal/metrics"
+
 	"github.com/mjpitz/myago/zaputil"
-	"github.com/mjpitz/pages/internal/geoip"
-	"github.com/mjpitz/pages/internal/metrics"
 )
 
 type Metric struct {

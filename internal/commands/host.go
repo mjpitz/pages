@@ -25,10 +25,11 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
+	"code.pitz.tech/mya/pages/internal"
+	"code.pitz.tech/mya/pages/internal/git"
+
 	"github.com/mjpitz/myago/flagset"
 	"github.com/mjpitz/myago/zaputil"
-	"github.com/mjpitz/pages/internal"
-	"github.com/mjpitz/pages/internal/git"
 )
 
 type HostConfig struct {

@@ -1,4 +1,4 @@
-module github.com/mjpitz/pages
+module code.pitz.tech/mya/pages
 
 go 1.18
 

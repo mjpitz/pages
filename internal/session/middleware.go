@@ -25,7 +25,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mjpitz/pages/internal/excludes"
+	"code.pitz.tech/mya/pages/internal/excludes"
 )
 
 func script(path string) string {

@@ -22,9 +22,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mjpitz/pages/internal/excludes"
-	"github.com/mjpitz/pages/internal/geoip"
-	"github.com/mjpitz/pages/internal/metrics"
+	"code.pitz.tech/mya/pages/internal/excludes"
+	"code.pitz.tech/mya/pages/internal/geoip"
+	"code.pitz.tech/mya/pages/internal/metrics"
 )
 
 type opt struct {

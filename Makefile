@@ -29,7 +29,7 @@ docker: .docker
 docker/release:
 	docker buildx build . \
 		--platform linux/amd64,linux/arm64 \
-		--label "org.opencontainers.image.source=https://github.com/mjpitz/pages" \
+		--label "org.opencontainers.image.source=https://code.pitz.tech/mya/pages" \
 		--label "org.opencontainers.image.version=$(VERSION)" \
 		--label "org.opencontainers.image.licenses=agpl3" \
 		--label "org.opencontainers.image.title=pages" \

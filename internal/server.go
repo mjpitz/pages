@@ -26,16 +26,17 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/sync/errgroup"
 
+	"code.pitz.tech/mya/pages/internal/excludes"
+	"code.pitz.tech/mya/pages/internal/geoip"
+	"code.pitz.tech/mya/pages/internal/pageviews"
+	"code.pitz.tech/mya/pages/internal/session"
+	"code.pitz.tech/mya/pages/internal/web"
+
 	"github.com/mjpitz/myago/auth"
 	basicauth "github.com/mjpitz/myago/auth/basic"
 	httpauth "github.com/mjpitz/myago/auth/http"
 	"github.com/mjpitz/myago/headers"
 	"github.com/mjpitz/myago/livetls"
-	"github.com/mjpitz/pages/internal/excludes"
-	"github.com/mjpitz/pages/internal/geoip"
-	"github.com/mjpitz/pages/internal/pageviews"
-	"github.com/mjpitz/pages/internal/session"
-	"github.com/mjpitz/pages/internal/web"
 )
 
 // AdminConfig encapsulates configuration for the administrative endpoints.
