@@ -20,6 +20,7 @@ import (
 	"context"
 	"mime"
 	"net/http"
+	"time"
 
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -97,6 +98,21 @@ var (
 
 			group, c := errgroup.WithContext(ctx.Context)
 			group.Go(server.ListenAndServe)
+			group.Go(func() error {
+				timer := time.NewTimer(hostConfig.Git.SyncInterval)
+				defer timer.Stop()
+
+				for {
+					select {
+					case <-c.Done():
+						return nil
+					case <-timer.C:
+						_ = gitService.Sync(ctx.Context)
+
+						timer.Reset(hostConfig.Git.SyncInterval)
+					}
+				}
+			})
 
 			<-c.Done()
 

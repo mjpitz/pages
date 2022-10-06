@@ -19,6 +19,7 @@ package git
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/osfs"
@@ -34,11 +35,12 @@ import (
 
 // Config encapsulates the elements that can be configured about the git service.
 type Config struct {
-	URL      string `json:"url"      usage:"the git url used to clone the repository"`
-	Branch   string `json:"branch"   usage:"the name of the git branch to clone"`
-	Tag      string `json:"tag"      usage:"the name of the git tag to clone"`
-	Username string `json:"username" usage:"the username used to authenticate with the git service"`
-	Password string `json:"password" usage:"the password used to authenticate with the git service"`
+	URL          string        `json:"url"           usage:"the git url used to clone the repository"`
+	Branch       string        `json:"branch"        usage:"the name of the git branch to clone"`
+	Tag          string        `json:"tag"           usage:"the name of the git tag to clone"`
+	Username     string        `json:"username"      usage:"the username used to authenticate with the git service"`
+	Password     string        `json:"password"      usage:"the password used to authenticate with the git service"`
+	SyncInterval time.Duration `json:"sync_interval" usage:"how frequently the git repository is pulled for changes" default:"1h"`
 }
 
 // NewService constructs a Service that manages the underlying git repository.

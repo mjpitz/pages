@@ -25,6 +25,16 @@ var (
 	namespace = "pages"
 	page      = "page"
 
+	// by default, summaries give us counts and sums which we can use to compute an average (not great, but it can work)
+	// in addition to the default information, we report on the following quantiles:
+	defaultObjectives = map[float64]float64{
+		0.25: 0, // lower quartile
+		0.5:  0, // median
+		0.75: 0, // upper quartile
+		0.90: 0, // One 9
+		0.99: 0, // Two 9s
+	}
+
 	// PageViewCount tracks page views by how often they're loaded.
 	PageViewCount = promauto.NewCounterVec(
 		prometheus.CounterOpts{
@@ -37,12 +47,13 @@ var (
 	)
 
 	// PageSessionDuration tracks how long someone spends on an individual page.
-	PageSessionDuration = promauto.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Namespace: namespace,
-			Subsystem: page,
-			Name:      "session_seconds",
-			Help:      "how long someone spent on a given page",
+	PageSessionDuration = promauto.NewSummaryVec(
+		prometheus.SummaryOpts{
+			Namespace:  namespace,
+			Subsystem:  page,
+			Name:       "session_seconds",
+			Help:       "how long someone spent on a given page",
+			Objectives: defaultObjectives,
 		},
 		[]string{"domain", "path", "country"},
 	)

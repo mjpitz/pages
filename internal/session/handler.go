@@ -19,7 +19,6 @@ package session
 import (
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
@@ -27,6 +26,7 @@ import (
 	"code.pitz.tech/mya/pages/internal/geoip"
 	"code.pitz.tech/mya/pages/internal/metrics"
 
+	"github.com/mjpitz/myago/clocks"
 	"github.com/mjpitz/myago/zaputil"
 )
 
@@ -62,6 +62,7 @@ type Handle struct {
 func (h *Handle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := zaputil.Extract(ctx)
+	clock := clocks.Extract(ctx)
 
 	conn, err := h.upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -91,9 +92,9 @@ func (h *Handle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	active.Inc()
 	defer func() { active.Dec() }()
 
-	start := time.Now()
+	start := clock.Now()
 	defer func() {
-		metrics.PageSessionDuration.WithLabelValues(domain, path, geoInfo.CountryCode).Observe(time.Since(start).Seconds())
+		metrics.PageSessionDuration.WithLabelValues(domain, path, geoInfo.CountryCode).Observe(clock.Since(start).Seconds())
 	}()
 
 	for {
