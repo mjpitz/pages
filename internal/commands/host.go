@@ -20,6 +20,7 @@ import (
 	"context"
 	"mime"
 	"net/http"
+	"path"
 	"time"
 
 	"github.com/urfave/cli/v2"
@@ -90,7 +91,34 @@ var (
 					Methods(http.MethodPost)
 			}
 
-			server.PublicMux.PathPrefix("/").Handler(http.FileServer(git.HTTP(gitService.FS))).Methods(http.MethodGet)
+			httpfs := http.FileServer(git.HTTP(gitService.FS))
+			server.PublicMux.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				values := r.URL.Query()
+
+				if values.Get("go-get") == "1" {
+					// peak for go-get requests
+					_, name := path.Split(r.URL.Path)
+					index := path.Join(r.URL.Path, "index.html")
+
+					// if index.html exists, then use that
+					info, err := gitService.FS.Stat(index)
+					if err == nil {
+						file, err := gitService.FS.Open(index)
+						if err != nil {
+							http.Error(w, "", http.StatusInternalServerError)
+							return
+						}
+
+						defer file.Close()
+
+						http.ServeContent(w, r, name, info.ModTime(), file)
+						return
+					}
+				}
+
+				httpfs.ServeHTTP(w, r)
+				return
+			}).Methods(http.MethodGet)
 
 			log.Info("serving",
 				zap.String("public", hostConfig.Public.Address),
