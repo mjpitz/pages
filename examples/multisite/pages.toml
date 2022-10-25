@@ -1,0 +1,9 @@
+[sites."mjpitz.com"]
+  url = "https://github.com/mjpitz/mjpitz.git"
+  branch = "gh-pages"
+  syncInterval = "5m"
+
+[sites."go.pitz.tech"]
+  url = "https://github.com/mjpitz/myago.git"
+  branch = "site"
+  syncInterval = "15m"

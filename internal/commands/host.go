@@ -20,7 +20,6 @@ import (
 	"context"
 	"mime"
 	"net/http"
-	"path"
 	"time"
 
 	"github.com/urfave/cli/v2"
@@ -30,13 +29,15 @@ import (
 	"code.pitz.tech/mya/pages/internal"
 	"code.pitz.tech/mya/pages/internal/git"
 
+	"github.com/mjpitz/myago/config"
 	"github.com/mjpitz/myago/flagset"
 	"github.com/mjpitz/myago/zaputil"
 )
 
 type HostConfig struct {
 	internal.ServerConfig
-	Git git.Config `json:"git"`
+	Git      git.Config `json:"git"`
+	SiteFile string     `json:"site_file" usage:"configure multiple sites using a single file"`
 }
 
 var (
@@ -63,62 +64,34 @@ var (
 			_ = mime.AddExtensionType(".yml", "application/yaml")
 			_ = mime.AddExtensionType(".json", "application/json")
 
-			gitService, err := git.NewService(hostConfig.Git)
-			if err != nil {
-				return err
-			}
-
-			err = gitService.Load(ctx.Context)
-			if err != nil {
-				return err
-			}
-
 			server, err := internal.NewServer(ctx.Context, hostConfig.ServerConfig)
 			if err != nil {
 				return err
 			}
 
-			{
-				server.AdminMux.
-					HandleFunc("/sync", func(w http.ResponseWriter, r *http.Request) {
-						err = gitService.Sync(r.Context())
-						if err != nil {
-							log.Error(err.Error())
-							http.Error(w, "", http.StatusInternalServerError)
-							return
-						}
-					}).
-					Methods(http.MethodPost)
+			endpointConfig := git.EndpointConfig{
+				Sites: make(map[string]*git.Config),
 			}
 
-			httpfs := http.FileServer(git.HTTP(gitService.FS))
-			server.PublicMux.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				values := r.URL.Query()
-
-				if values.Get("go-get") == "1" {
-					// peak for go-get requests
-					_, name := path.Split(r.URL.Path)
-					index := path.Join(r.URL.Path, "index.html")
-
-					// if index.html exists, then use that
-					info, err := gitService.FS.Stat(index)
-					if err == nil {
-						file, err := gitService.FS.Open(index)
-						if err != nil {
-							http.Error(w, "", http.StatusInternalServerError)
-							return
-						}
-
-						defer file.Close()
-
-						http.ServeContent(w, r, name, info.ModTime(), file)
-						return
-					}
+			if hostConfig.SiteFile == "" {
+				endpointConfig.Sites["*"] = &hostConfig.Git
+			} else {
+				err = config.Load(ctx.Context, &endpointConfig, hostConfig.SiteFile)
+				if err != nil {
+					return err
 				}
+			}
 
-				httpfs.ServeHTTP(w, r)
-				return
-			}).Methods(http.MethodGet)
+			endpoint, err := git.NewEndpoint(ctx.Context, endpointConfig)
+			if err != nil {
+				return err
+			}
+			defer endpoint.Close()
+
+			{ // git endpoints
+				server.AdminMux.HandleFunc("/sync", endpoint.Sync).Methods(http.MethodPost)
+				server.PublicMux.PathPrefix("/").HandlerFunc(endpoint.Lookup).Methods(http.MethodGet)
+			}
 
 			log.Info("serving",
 				zap.String("public", hostConfig.Public.Address),
@@ -127,24 +100,16 @@ var (
 			group, c := errgroup.WithContext(ctx.Context)
 			group.Go(server.ListenAndServe)
 			group.Go(func() error {
-				timer := time.NewTimer(hostConfig.Git.SyncInterval)
-				defer timer.Stop()
-
-				for {
-					select {
-					case <-c.Done():
-						return nil
-					case <-timer.C:
-						_ = gitService.Sync(ctx.Context)
-
-						timer.Reset(hostConfig.Git.SyncInterval)
-					}
-				}
+				return endpoint.SyncLoop(ctx.Context)
 			})
 
 			<-c.Done()
 
-			_ = server.Shutdown(context.Background())
+			shutdownTimeout := 30 * time.Second
+			timeout, cancelTimeout := context.WithTimeout(context.Background(), shutdownTimeout)
+			defer cancelTimeout()
+
+			_ = server.Shutdown(timeout)
 			_ = group.Wait()
 
 			err = c.Err()
