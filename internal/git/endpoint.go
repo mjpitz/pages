@@ -141,7 +141,7 @@ func (e *Endpoint) Lookup(w http.ResponseWriter, r *http.Request) {
 func (e *Endpoint) SyncLoop(ctx context.Context) error {
 	clock := clocks.Extract(ctx)
 
-	timer := clock.NewTicker(time.Second)
+	timer := clock.NewTicker(30 * time.Second)
 	defer timer.Stop()
 
 	keys := make([]string, 0, len(e.sites))
